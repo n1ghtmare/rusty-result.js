@@ -28,6 +28,23 @@
  *
  * // Use Result with a function
  * myResultFunction(r); // prints: r3 is error with value of: -7
+ *
+ * // Pattern match on Result
+ * const r4 = Result.ok(5);
+ * const r5 = r4.match({
+ *   ok: (x) => `ok with value ${x}`,
+ *   error: (y) => `error with value ${y}`,
+ * });
+ * console.log(r5); // prints: ok with value 5
+ *
+ * // Or something like this, where the pattern match doesn't return a value
+ * // but instead performs an action
+ *
+ * const r6 = Result.error(10);
+ * r6.match({
+ *   ok: (x) => console.log(`ok with value ${x}`),
+ *   error: (y) => console.log(`error with value ${y}`),
+ * }); // prints: error with value 10
  * ```
  */
 export class Result<Ok, Error> {
@@ -147,9 +164,7 @@ export class Result<Ok, Error> {
   /** Maps `Error` type or throws an `Error` if result is not ok */
   public mapEmptyError<E>(): Result<Ok, E> {
     if (this.isError()) {
-      throw new ResultError(
-        `Can't mapEmptyErr for when error isn't empty`,
-      );
+      throw new ResultError(`Can't mapEmptyErr for when error isn't empty`);
     }
     return this as unknown as Result<Ok, E>;
   }
@@ -161,9 +176,7 @@ export class Result<Ok, Error> {
   }
 
   /** Calls `f` if the result is Ok, otherwise returns the Error value of itself. */
-  public andThen<O>(
-    f: (x: Ok) => Result<O, Error>,
-  ): Result<O, Error> {
+  public andThen<O>(f: (x: Ok) => Result<O, Error>): Result<O, Error> {
     if (this.isOk()) return f(this.value as Ok);
     else return this.mapEmptyOk();
   }
@@ -182,12 +195,18 @@ export class Result<Ok, Error> {
 
   /** Returns the inner Ok value or undefined if value is Error */
   public ok(): Ok | undefined {
-    return this.isOkInner ? this.value as Ok : undefined;
+    return this.isOkInner ? (this.value as Ok) : undefined;
   }
 
   /** Returns the inner Error value or undefined if value is Ok */
   public error(): Error | undefined {
-    return this.isOkInner ? undefined : this.value as Error;
+    return this.isOkInner ? undefined : (this.value as Error);
+  }
+
+  /** Pattern match on the Result. */
+  public match<O>(m: { ok: (x: Ok) => O; error: (x: Error) => O }): O {
+    if (this.isOk()) return m.ok(this.unwrap());
+    else return m.error(this.unwrapError());
   }
 }
 

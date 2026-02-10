@@ -3,9 +3,8 @@ on:
   push:
     branches: [main]
     # Ignore all markdown files, all files in the .github directory (but not its
-    # workflows/ directory), and test files. 
+    # workflows/ directory), and test files.
     paths-ignore: ['**.md', '.github/*']
-
 
 jobs:
 
@@ -47,7 +46,6 @@ jobs:
             echo "::set-output name=npm_tag::latest"
           fi
 
-
   # job: publish_github_package
   publish_github_package:
     name: Publish NPM package to Github
@@ -75,7 +73,6 @@ jobs:
       - run: npm publish --tag ${{needs.create_version.outputs.npm_tag}}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
   # job: publish_npm_package
   publish_npm_package:
